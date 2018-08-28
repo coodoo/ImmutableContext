@@ -1,5 +1,5 @@
 import React from 'react'
-import { Provider, Consumer } from './MyContext2'
+import { Consumer } from './ImmutableContext'
 
 const Label = props => {
 	console.log('label 內拿到 props: ', props)

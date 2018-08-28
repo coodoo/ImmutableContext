@@ -18,7 +18,7 @@ export class Provider extends PureComponent {
 
 		let { store } = args
 
-		if(store['actions'] == undefined ) throw new Error('Store.actions{} not found, try adding an empty object.')
+		if(store['actions'] === undefined ) throw new Error('Store.actions{} not found, try adding an empty object.')
 
 		if( Object.isExtensible( store ) ) {
 			// console.log( '強制轉 immutable',  )
@@ -41,13 +41,19 @@ export class Provider extends PureComponent {
 	// internal updateStore 目地是為了確保 immutable 操作
 	// 由它代為操作 immer.produce() api
 	updateStore = next => {
-		// console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
-		const newState = produce(this.state, tmp => {
-			// console.log('tmp 原本是=', tmp)
-			return { ...tmp, ...next }
+
+		console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
+
+		Promise.resolve(next).then( val => {
+			console.log( '進到真正處理段落', val )
+
+			const newState = produce(this.state, tmp => {
+				return { ...tmp, ...val }
+			})
+			console.log('newState=', newState, Object.isExtensible(newState))
+			this.setState(newState)
 		})
-		console.log('newState=', newState, Object.isExtensible(newState))
-		this.setState(newState)
+
 	}
 
 	render() {

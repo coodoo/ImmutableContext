@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import { Provider } from './MyContext2'
+import { Provider } from './ImmutableContext'
 import store from './MyStore'
 import Label3 from './Label3'
 import './styles.css'
