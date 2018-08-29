@@ -59,7 +59,7 @@ export const createImmutableContext = store => {
 					return { ...tmp, ...val }
 				})
 				console.log(
-					'updateStore 完的 newState=',
+					'updateStore 後 newState=',
 					newState,
 					Object.isExtensible(newState),
 				)
@@ -68,7 +68,7 @@ export const createImmutableContext = store => {
 		}
 
 		render() {
-			console.log('Render > Provider 內部 state: ', this.state, ' >與 props: ', this.props)
+			// console.log('Render > Provider 內部 state: ', this.state, ' >與 props: ', this.props)
 			return <cx.Provider value={this.state}>{this.props.children}</cx.Provider>
 		}
 	}

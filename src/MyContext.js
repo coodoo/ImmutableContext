@@ -19,6 +19,7 @@ class CC extends React.Component {
 			<MyContext.Consumer>
 				{payload => {
 					const Comp = this.props.children
+					// this.props.children({...payload}) 這樣才對？
 					console.log('Comp=', Comp, ' >payload: ', payload)
 					return <Comp {...payload} />
 				}}
