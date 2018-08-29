@@ -2,7 +2,6 @@ import React from 'react'
 import HisStore from './HisStore'
 import HerStore from './HerStore'
 import { adopt } from 'react-adopt'
-import { merge } from 'lodash'
 
 // 這是單純的 presentation component
 const Label = props => {
@@ -49,9 +48,36 @@ export const AdoptedLabel = props => (
 /* 用 Wrapped 包過一層方便取得多個 Consumer 資料
 -------------------------------------------------- */
 
-// 示範用 Wrapped 元件預先整合兩份資料再透過 render props 手法餵入 Label 內使用
-// 下面的兩層 Consumer 顯然也可用 react-adopt 改寫的更精簡一點，參考上面範例
+// 亮點是這個 Wrapped 元件內部可包任何 presentation 子元件，就不用每次重複寫
 const Wrapped = props => {
+	const Composed = adopt({
+		herValue: <HerStore.Consumer />,
+		hisValue: <HisStore.Consumer />,
+	})
+
+	return (
+		<Composed>
+				{({ herValue, hisValue }) => {
+					// console.log('真的有拿到兩份資料:', hisValue, herValue)
+					const payload = {
+						...hisValue,
+						...herValue,
+						actions: { ...hisValue.actions, ...herValue.actions },
+					}
+					return props.children(payload)
+				}}
+			</Composed>
+	)
+}
+
+// 因為是 render props 因此將來可置換 Label 為任何元件，它們皆可收到 HisStore 與 HerStore 的值
+export const WrappedLabel = props => (
+	<Wrapped>{pay => <Label {...pay} />}</Wrapped>
+)
+
+/*
+// 這是原始寫法，後來發現下面的兩層 Consumer 可用 react-adopt 改寫的更精簡一點，參考上面範例
+const WrappedUgly = props => {
 	return (
 		<HisStore.Consumer>
 			{hisValue => {
@@ -75,9 +101,10 @@ const Wrapped = props => {
 }
 
 // 因為是 render props 因此將來可置換 Label 為任何元件，它們皆可收到 HisStore 與 HerStore 的值
-export const WrappedLabel = props => (
+export const WrappedLabelUgly = props => (
 	<Wrapped>{pay => <Label {...pay} />}</Wrapped>
 )
+*/
 
 /* 這是原始版，寫死只能處理 <Label> 一個元件
 -------------------------------------------------- */
