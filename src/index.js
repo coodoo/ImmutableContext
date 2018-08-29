@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import Label from './Label'
-import HerContext from './HerContext'
+import HerStore from './HerStore'
 import HisStore from './HisStore'
 
 import './styles.css'
@@ -17,9 +17,9 @@ class App extends Component {
 	render() {
 		return (
 			<HisStore.Provider>
-				<HerContext.Provider>
+				<HerStore.Provider>
 					<Label />
-				</HerContext.Provider>
+				</HerStore.Provider>
 			</HisStore.Provider>
 		)
 	}

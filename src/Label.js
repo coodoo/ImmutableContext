@@ -1,6 +1,6 @@
 import React from 'react'
 import HisStore from './HisStore'
-import HerContext from './HerContext'
+import HerStore from './HerStore'
 
 const Label = props => {
 	console.log('label 內拿到 props: ', props)
@@ -27,7 +27,7 @@ export default props => (
 			hisValue => {
 				console.log( '看 hisValue:', hisValue )
 				return (
-					<HerContext.Consumer>
+					<HerStore.Consumer>
 					{ herValue => {
 						console.log( '看內層 herValue:', herValue )
 
@@ -35,7 +35,7 @@ export default props => (
 						// 這是為何文件上會建議用一個 hoc 來一次整合兩份 Provider 的資料
 						return <Label {...hisValue} {...herValue} actions={{...hisValue.actions, ...herValue.actions}} />
 					}}
-					</HerContext.Consumer>
+					</HerStore.Consumer>
 				)
 			}
 		}
