@@ -2,7 +2,8 @@ import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from './ImmutableContext'
 import store from './MyStore'
-import Label3 from './Label3'
+import herStore from './HerStore'
+import Label from './Label'
 import './styles.css'
 
 class App extends Component {
@@ -16,7 +17,9 @@ class App extends Component {
 	render() {
 		return (
 			<Provider store={store}>
-				<Label3 />
+				<Provider store={herStore}>
+					<Label />
+				</Provider>
 			</Provider>
 		)
 	}

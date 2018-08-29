@@ -1,5 +1,3 @@
-// import produce from 'immer'
-
 /**
  * 這支是 user 控管的 store 檔案
  * 可寫多支 actions
@@ -28,10 +26,6 @@ const wait = time => {
 		resolve(time)
 	}, time))
 }
-
-// function wait( time ){
-// 			return new Promise( resolve => setTimeout( ()=>{console.log( `\t${time/1000} 秒到` ); resolve()}, time) )
-// 		}
 
 // store acts just like redux store, for storing global state
 // it was made immutable via immer
