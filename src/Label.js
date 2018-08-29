@@ -8,11 +8,13 @@ const Label = props => {
 	console.log('label 內拿到 props: ', props)
 	const {
 		value,
-		actions: { myMethod },
+		actions: { hisMethod },
 	} = props
 
 	const onClick = () => {
-		myMethod({
+		// hisMethod({aaa: {bar: 'barrr'}, bbb:{coo: '16888'}})
+		// hisMethod({value: 42})
+		hisMethod({
 			value: Math.random()
 				.toString()
 				.substr(0, 5),

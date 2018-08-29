@@ -24,8 +24,6 @@ export const createImmutableContext = store => {
 
 			super()
 
-			// let { store } = args
-
 			if (store['actions'] === undefined)
 				throw new Error('Store.actions{} not found, try adding an empty object.')
 
@@ -40,7 +38,12 @@ export const createImmutableContext = store => {
 				for (let key in tmp.actions) {
 					const userFn = tmp.actions[key]
 					// 重新綁定成呼叫內部真正的 updateStore 去 setState 以觸發重繪
-					tmp.actions[key] = next => this.updateStore(userFn(next))
+					tmp.actions[key] = (...args) => {
+						// console.log( 'args =', args )
+						// +todo: 實際上這裏還可 return this.updateStore() 就能支援 asyncSetState 了
+						// ← 但因為那裏用 Promise.resolve() 已經是非同步，大概不行
+						this.updateStore(userFn.call(null, this.state, ...args))
+					}
 				}
 			})
 
@@ -53,7 +56,7 @@ export const createImmutableContext = store => {
 			// console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
 
 			Promise.resolve(next).then(val => {
-				// console.log( '進到真正處理段落', val )
+				console.log( '進到真正處理段落', val )
 
 				const newState = produce(this.state, tmp => {
 					return { ...tmp, ...val }
