@@ -1,6 +1,7 @@
 import React from 'react'
 const MyContext = React.createContext()
 
+// 沒用到了
 class PP extends React.Component {
 	state = {
 		foo: 'bar'

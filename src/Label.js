@@ -1,5 +1,6 @@
 import React from 'react'
-import { Consumer } from './ImmutableContext'
+import HisStore from './HisStore'
+import HerContext from './HerContext'
 
 const Label = props => {
 	console.log('label 內拿到 props: ', props)
@@ -21,15 +22,24 @@ const Label = props => {
 
 
 export default props => (
-	<Consumer>
+	<HisStore.Consumer>
 		{
-			// 此 payload 為 immutable，無法更改
-			payload => {
-				console.log( '看 payload 內容:', payload )
-				return <Label {...payload} />
+			hisValue => {
+				console.log( '看 hisValue:', hisValue )
+				return (
+					<HerContext.Consumer>
+					{ herValue => {
+						console.log( '看內層 herValue:', herValue )
+
+						// 多層堆疊時這裏要注意 hisValue 與 herValue 的 actions{} 會覆寫對方，因此要特別組合一次
+						// 這是為何文件上會建議用一個 hoc 來一次整合兩份 Provider 的資料
+						return <Label {...hisValue} {...herValue} actions={{...hisValue.actions, ...herValue.actions}} />
+					}}
+					</HerContext.Consumer>
+				)
 			}
 		}
-	</Consumer>
+	</HisStore.Consumer>
 )
 
 // export default props => 'fooo'

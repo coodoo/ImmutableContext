@@ -1,3 +1,5 @@
+import { createImmutableContext } from './ImmutableContext'
+
 /**
  * 這支是 user 控管的 store 檔案
  * 可寫多支 actions
@@ -10,8 +12,8 @@ const actions = {
 	// 示範可用 async 操作
 	myMethod: async val => {
 		console.log('User action run: ', val)
-		const result = await wait(1500)
-		console.log( 'result 回來', result  )
+		const result = await wait(300)
+		console.log( 'async result 回來:', result  )
 		val.value += '==' + result
 		return val
 	},
@@ -37,4 +39,6 @@ const store = {
 	actions: actions
 }
 
-export default store
+// export default store
+
+export default createImmutableContext(store)

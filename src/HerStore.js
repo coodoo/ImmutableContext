@@ -5,7 +5,7 @@ const actions = {
 
 	herMethod: val => `herMethod-${val}`,
 
-	hisMethod: val => {
+	sheMethod: val => {
 		return val.value + '<<his'
 	},
 }
