@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
-import { SimpleLabel, WrappedLabel } from './Label'
+import { SimpleLabel, WrappedLabel, AdoptedLabel } from './Label'
 import HerStore from './HerStore'
 import HisStore from './HisStore'
 
@@ -20,6 +20,7 @@ class App extends Component {
 				<HerStore.Provider>
 					<SimpleLabel />
 					<WrappedLabel />
+					<AdoptedLabel />
 				</HerStore.Provider>
 			</HisStore.Provider>
 		)
