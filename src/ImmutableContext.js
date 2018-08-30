@@ -56,22 +56,26 @@ export const createImmutableContext = store => {
 			// console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
 
 			return Promise.resolve(next).then(val => {
-				// console.log( '進到真正處理段落', val )
+				console.log( '進到真正處理段落', val )
 
 				const newState = produce(this.state, tmp => {
 					return { ...tmp, ...val }
 				})
-				console.log(
-					'updateStore 後 newState=',
-					newState,
-					Object.isExtensible(newState),
-				)
-				this.setState(newState)
+
+				// console.log('updateStore 後 newState=', 	newState)
+
+				// this.setState(newState)
+				return this.setStateAsync(newState)
 
 				// console.log( '\t updateStore 完畢',  )
-				return newState
 			})
 		}
+
+		// 因為 setState() 是 batched run，因此要確保等到它執行完才跑下一支指令，這樣就能排隊執行多個指令
+		// 多謝佳豪提供此手法
+		setStateAsync(next) {
+		   return new Promise( resolve => this.setState(next, resolve) )
+		 }
 
 		render() {
 			// console.log('Render > Provider 內部 state: ', this.state, ' >與 props: ', this.props)
