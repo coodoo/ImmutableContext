@@ -44,3 +44,25 @@
 		- 範例中將 local state 切分為 HisStore 與 HerStore 以示範可層層堆疊 Store Provider
 
 		- Label.js 內示範了兩種使用 Store Consumer 的方式
+
+/* Aug 30, 2018 新增
+-------------------------------------------------- */
+
+# 新增支援兩個 use case
+
+	- 修改 ImmutableContext 返還 Promise，因此元件內可等待前一支做完再跑下一支，就不怕順序性問題了
+
+		const handleRemove = async () => {
+			await handleRemoveMarker() // 等這支跑完，才執行 save()
+			await save()
+		}
+
+	- 這樣會否將太多 application logic 都搬到 actions{} 內了？
+
+		- 如果視 actions 為 reducer，那原本就是它該做的事
+
+			- redux 文件也說通常就是放在 actionCreator 或 reducer 內，但比較建議後者
+
+			- 我也認同目前 actions{} 的角色更像 reducer，它屬於 model 的一部份，因此負責處理 biz logic 是合理的
+
+				- reducer 從來就不只是單純 oldState -> newState
