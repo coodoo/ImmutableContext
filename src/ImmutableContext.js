@@ -40,9 +40,9 @@ export const createImmutableContext = store => {
 					// 重新綁定成呼叫內部真正的 updateStore 去 setState 以觸發重繪
 					tmp.actions[key] = (...args) => {
 						// console.log( 'args =', args )
-						// +todo: 實際上這裏還可 return this.updateStore() 就能支援 asyncSetState 了
-						// ← 但因為那裏用 Promise.resolve() 已經是非同步，大概不行
-						this.updateStore(userFn.call(null, this.state, ...args))
+						// 後來想到這裏還可 return this.updateStore() 就能支援 asyncSetState 了
+						// +todo: 目前只先 return Promise，還沒寫 asyncSetState 的部份
+						return this.updateStore(userFn.call(null, this.state, ...args))
 					}
 				}
 			})
@@ -55,8 +55,8 @@ export const createImmutableContext = store => {
 		updateStore = next => {
 			// console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
 
-			Promise.resolve(next).then(val => {
-				console.log( '進到真正處理段落', val )
+			return Promise.resolve(next).then(val => {
+				// console.log( '進到真正處理段落', val )
 
 				const newState = produce(this.state, tmp => {
 					return { ...tmp, ...val }
@@ -67,6 +67,9 @@ export const createImmutableContext = store => {
 					Object.isExtensible(newState),
 				)
 				this.setState(newState)
+
+				// console.log( '\t updateStore 完畢',  )
+				return newState
 			})
 		}
 

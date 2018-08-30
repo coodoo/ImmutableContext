@@ -8,17 +8,25 @@ const Label = props => {
 	console.log('label 內拿到 props: ', props)
 	const {
 		value,
-		actions: { hisMethod },
+		actions: { hisMethod, myMethod, },
 	} = props
 
 	const onClick = () => {
 		// hisMethod({aaa: {bar: 'barrr'}, bbb:{coo: '16888'}})
 		// hisMethod({value: 42})
-		hisMethod({
+
+		// const bb = hisMethod({
+		const bb = myMethod({
 			value: Math.random()
 				.toString()
 				.substr(0, 5),
 		})
+		.then(
+			res => console.log( '成功:', res ),
+			err => console.log( '失敗', err ),
+		)
+
+		console.log( '拿回什麼', bb )
 	}
 
 	return <button onClick={onClick}>Label2: {value}</button>

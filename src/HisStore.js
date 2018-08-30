@@ -9,12 +9,25 @@ import { createImmutableContext } from './ImmutableContext'
 // 讓 user function 有機會預做處理，返還最終結果值就好
 const actions = {
 
+	myMethod: async (state, obj) => {
+		const result = await wait(1500)
+		obj.value += '--' + result
+		return obj
+	},
+
 	// 第一參數固定傳入 this.state 供讀取目前新值，但為 immutable 因此無法修改，安啦
 	hisMethod: (state, obj) => {
 		// 示範可讀取最新 state 內容
 		obj.value += ' -- ' + state.value
+
+		actions.save(obj)
+
 		return obj
 	},
+
+	save: val => {
+		console.log( 'save: ', val )
+	}
 }
 
 const wait = time => {
