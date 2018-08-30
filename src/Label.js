@@ -149,3 +149,21 @@ export const SimpleLabel = props => (
 		}}
 	</HisStore.Consumer>
 )
+
+/* HOC
+-------------------------------------------------- */
+
+// 包成 HOC，這層負責讀取 context 內的 state，這樣就不用一直重覆寫 render props
+const withState = Comp => {
+  return props => {
+    return (
+      <HisStore.Consumer>
+      	{ s => {
+      		return <Comp {...s} />
+      	}}
+      </HisStore.Consumer>
+    )
+  }
+}
+
+export const HOCLabel = withState(Label)
