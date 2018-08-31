@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React, { PureComponent } from 'react'
 import produce from 'immer'
 
@@ -32,16 +34,17 @@ export const createImmutableContext = store => {
 				store = produce(store, tmp => ({ ...store }))
 			}
 
-			// console.log('ctor 拿的到 props=', Object.isExtensible(store.actions), store )
-
 			const newStore = produce(store, tmp => {
 				for (let key in tmp.actions) {
 					const userFn = tmp.actions[key]
+
+					if(userFn.length < 2)
+						throw new Error(`Action method '${userFn.name}' must receive two arguments as (state, next), but just got ${userFn.length}`)
+
 					// 重新綁定成呼叫內部真正的 updateStore 去 setState 以觸發重繪
 					tmp.actions[key] = (...args) => {
 						// console.log( 'args =', args )
 						// 後來想到這裏還可 return this.updateStore() 就能支援 asyncSetState 了
-						// +todo: 目前只先 return Promise，還沒寫 asyncSetState 的部份
 						return this.updateStore(userFn.call(null, this.state, ...args))
 					}
 				}
@@ -53,16 +56,16 @@ export const createImmutableContext = store => {
 		// internal updateStore 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
 		updateStore = next => {
-			// console.log('真的 updateStore 跑了: ', next, ' >state: ', this.state)
+			// console.log('1. 真的 updateStore 跑了: ', next, ' >state: ', this.state)
 
 			return Promise.resolve(next).then(val => {
-				console.log( '進到真正處理段落', val )
+				// console.log( '2. 進到真正處理段落', val )
 
 				const newState = produce(this.state, tmp => {
 					return { ...tmp, ...val }
 				})
 
-				// console.log('updateStore 後 newState=', 	newState)
+				// console.log('3. updateStore 後 newState=', 	newState)
 
 				// this.setState(newState)
 				return this.setStateAsync(newState)
