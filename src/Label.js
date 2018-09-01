@@ -28,8 +28,11 @@ const Label = props => {
 		console.log( '拿回什麼', bb )
 		*/
 
-		await hisMethod({his:'method'})
-		await myMethod({my:'method'})
+		// 可先等 async 操作完成再進行下一步
+		await myMethod({value:'method'})
+
+		// sync 操作
+		hisMethod({value:'method'}, 123, [3,6,9])
 
 		console.log( 'onClick 跑完',  )
 

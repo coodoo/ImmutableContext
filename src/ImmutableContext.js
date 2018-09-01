@@ -35,43 +35,40 @@ export const createImmutableContext = store => {
 			}
 
 			const newStore = produce(store, tmp => {
+
+				// 1. 對 actions{} 內每支指令加料，多傳入 state, updateState 兩樣東西
+				// 最終包成 { state{}, updateState, args[] } 三個 props
 				for (let key in tmp.actions) {
+
 					const userFn = tmp.actions[key]
-
-					if(userFn.length < 2)
-						throw new Error(`Action method '${userFn.name}' must receive two arguments as (state, next), but just got ${userFn.length}`)
-
-					// 重新綁定成呼叫內部真正的 updateStore 去 setState 以觸發重繪
+					// 重新綁定成呼叫內部真正的 updateState 去 setState 以觸發重繪
 					tmp.actions[key] = (...args) => {
 						// console.log( 'args =', args )
-						// 後來想到這裏還可 return this.updateStore() 就能支援 asyncSetState 了
-						return this.updateStore(userFn.call(null, this.state, ...args))
+						return userFn.call(null, {
+							state: this.state,
+							updateState: this.updateState,
+							args: args })
 					}
 				}
+
+				// 2. 直接將 updateState 注入 store 內方便存取
+				tmp.updateState = this.updateState
 			})
 
 			this.state = newStore
 		}
 
-		// internal updateStore 目地是為了確保 immutable 操作
+		// internal updateState 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
-		updateStore = next => {
-			// console.log('1. 真的 updateStore 跑了: ', next, ' >state: ', this.state)
+		updateState = next => {
+			// console.log('1. updateState >next: ', next, ' >old state: ', this.state)
 
-			return Promise.resolve(next).then(val => {
-				// console.log( '2. 進到真正處理段落', val )
-
-				const newState = produce(this.state, tmp => {
-					return { ...tmp, ...val }
-				})
-
-				// console.log('3. updateStore 後 newState=', 	newState)
-
-				// this.setState(newState)
-				return this.setStateAsync(newState)
-
-				// console.log( '\t updateStore 完畢',  )
+			const newState = produce(this.state, tmp => {
+				return { ...tmp, ...next }
 			})
+
+			console.log('2. updateState >newState: ', newState)
+			return this.setStateAsync(newState)
 		}
 
 		// 因為 setState() 是 batched run，因此要確保等到它執行完才跑下一支指令，這樣就能排隊執行多個指令
