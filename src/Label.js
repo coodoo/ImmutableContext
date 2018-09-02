@@ -13,6 +13,7 @@ class Label extends React.PureComponent {
 			callbacks,
 		} = this.props
 
+		// 取出偷藏在 state 內的上層指令以方便應用
 		const togglePlay = callbacks.App ? callbacks.App.togglePlay : null
 
 		// 注意由於 updateState 內部是操作 asyncUpdateState 並返還 Promise
