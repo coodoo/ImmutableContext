@@ -45,6 +45,83 @@
 
 		- Label.js 內示範了兩種使用 Store Consumer 的方式
 
+
+/* Sep 02, 2018 新增
+-------------------------------------------------- */
+
+# 針對實際用例進行大改良
+
+	- 不再支援多個 store，因為我用不到，而且 redux 也不建議這樣做
+
+	- store 內容
+
+		{
+			callbacks: {...},
+
+			actions: {...},
+
+			updateState, // fn
+
+			...variables // 各種 state 變數
+		}
+
+		- callbacks
+
+			- 由上層元件偷藏進去，通常是放在 constructor 或 componentDidMount 內執行
+
+			- 之後下層元件即可直接透過 global state 取用，從而省去層層下傳之苦
+
+			- 通常會這樣做的指令都是因為它會操作 DOM elem，或要用到元件的 local state or private variable
+
+			- 支援 async 操作
+
+		- actions
+
+			- 這是仿 actionCreator + reducer 合一的中立指令
+
+			- 通常用於操作 side effect，例如存檔或存取遠端 API
+
+			- 寫成 action method 的好處是方便多個元件直接操作現成指令，而不用每次都重寫
+
+			- 支援 async 操作
+
+			- 但我一般不會寫這些指令，較常用 callbacks
+
+		- updateState
+
+			- 由 ImmutableContext 自動注入
+
+			- 因為它是最常使用的指令，因此直接注入方便使用
+
+	- 操作 updateState() 時要記得它是 async 的
+
+		- 因此如果有連續四步驟要執行的話，需用 await 一步步等待操作完成，否則會更新到舊的 state
+
+		- 但如果只有一個步驟(例如最常見的 updateState() )則可射後不理，省略 await
+
+		- 背後原因是因為 updateState 內部是操作 asyncSetState 並返還 Promise，因此它本身不是同步的
+
+			- 實際上本就不能期待 react setState() 是同步的，只是不用寫成醜醜的 setState(newState, ()=>{...} ) 格式
+
+		- 建議一律加上 return updateState()
+
+			- 才能享受 asyncSetState 提供的 await 依序執行好處
+
+	- 新增範例
+
+		- 示範 actions 內放中立第三方指令
+
+			- 而且可多次呼叫 updateState 在操作中更新狀態
+
+		- 示範 ui 偷藏指令到 callbacks{} 內與下層元件取用
+
+	- ImmutableContext 內應改用 _.merge() 做 deep merge 較安全
+
+		const newState = produce(this.state, tmp => {
+			return { ...tmp, ...val }
+		})
+
+
 /* Aug 30, 2018 新增
 -------------------------------------------------- */
 
