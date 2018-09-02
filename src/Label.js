@@ -1,8 +1,6 @@
 import React from 'react'
 import HisStore from './HisStore'
-import HerStore from './HerStore'
 import { adopt } from 'react-adopt'
-import merge from 'deepmerge'
 
 // 這是單純的 presentation component
 class Label extends React.PureComponent {
@@ -10,23 +8,32 @@ class Label extends React.PureComponent {
 	onClick = async () => {
 
 		const {
+			updateState,
 			actions: { hisMethod, myMethod, },
 			callbacks,
 		} = this.props
 
 		const togglePlay = callbacks.App ? callbacks.App.togglePlay : null
 
-		// 可先等 async 操作完成再進行下一步
-		// await myMethod({value:'herOP'})
+		// 注意由於 updateState 內部是操作 asyncUpdateState 並返還 Promise
+		// 因此如果有四個步驟要依序執行的話，需用 await 一步步執行，否則會更新到舊的 state
+		// 但如果只有一個步驟(例如最常見的 updateState() )則可射後不理，省略 await
 
-		// sync 操作
-		hisMethod({value:'hisOP'}, 123, [3,6,9])
+		// 示範：直接操作 updateState 更新狀態
+		await updateState({ status: 'Label::opStart'})
 
-		// 示範操作 ui 元件偷藏的指令
-		togglePlay()
+		// 示範：操作上層元件偷藏的指令，可省去層層下傳之苦
+		await togglePlay()
 
-		console.log( 'onClick 跑完',  )
+		// 示範：操作放於 actions{} 內的中立指令，作用類似 actionCreator + reducer
+		await hisMethod({value:'hisOP'}, 123, [3,6,9])
 
+		// 示範：可先等 async 指令完成再進行下一步
+		await myMethod({value:'herOP'})
+
+		await updateState({ status: 'Label::opEnd'})
+
+		// console.log( 'onClick 跑完',  )
 	}
 
 	render() {
@@ -40,83 +47,6 @@ class Label extends React.PureComponent {
 	}
 }
 
-/* render props 1 - 用 react-adopt 先整合兩份 Consumer 的內容
------------------------------------------------------------------ */
-
-// 用 adopt 先包過兩份 Consumer renderProps 語法看起來簡潔許多
-// 此手法缺點是只能套用於 Label 身上，因為寫死了
-const Composed = adopt({
-	herValue: <HerStore.Consumer />,
-	hisValue: <HisStore.Consumer />,
-})
-
-export const AdoptedLabel = props => (
-	<Composed>
-		{({ herValue, hisValue }) => {
-			// console.log('真的有拿到兩份資料:', hisValue, herValue)
-			const merged = merge(hisValue, herValue)
-			return <Label {...merged} />
-		}}
-	</Composed>
-)
-
-/* render props 2 - 改良為可彈性包入各種子元件
--------------------------------------------------- */
-
-// 亮點是這個 Wrapped 元件內部可包任何 presentation 子元件，就不用每次重複寫
-const Wrapped = props => {
-	const Composed = adopt({
-		herValue: <HerStore.Consumer />,
-		hisValue: <HisStore.Consumer />,
-	})
-
-	return (
-		<Composed>
-				{({ herValue, hisValue }) => {
-					// console.log('真的有拿到兩份資料:', hisValue, herValue)
-					const merged = merge(hisValue, herValue)
-					return props.children(merged)
-				}}
-			</Composed>
-	)
-}
-
-// 因為是 render props 因此將來可置換 Label 為任何元件，它們皆可收到 HisStore 與 HerStore 的值
-export const WrappedLabel = props => (
-	<Wrapped>{pay => <Label {...pay} />}</Wrapped>
-)
-
-/*
-// 這是原始寫法，後來發現下面的兩層 Consumer 可用 react-adopt 改寫的更精簡一點，參考上面範例
-const WrappedUgly = props => {
-	return (
-		<HisStore.Consumer>
-			{hisValue => {
-				// console.log( '看 hisValue:', hisValue )
-				return (
-					<HerStore.Consumer>
-						{herValue => {
-							// console.log( '看內層 herValue:', herValue )
-							const payload = {
-								...hisValue,
-								...herValue,
-								actions: { ...hisValue.actions, ...herValue.actions },
-							}
-							return props.children(payload)
-						}}
-					</HerStore.Consumer>
-				)
-			}}
-		</HisStore.Consumer>
-	)
-}
-
-// 因為是 render props 因此將來可置換 Label 為任何元件，它們皆可收到 HisStore 與 HerStore 的值
-export const WrappedLabelUgly = props => (
-	<Wrapped>{pay => <Label {...pay} />}</Wrapped>
-)
-*/
-
 /* 這是原始版，寫死只能處理 <Label> 一個元件
 -------------------------------------------------- */
 
@@ -124,15 +54,7 @@ export const SimpleLabel = props => (
 	<HisStore.Consumer>
 		{hisValue => {
 			// console.log( '看 hisValue:', hisValue )
-			return (
-				<HerStore.Consumer>
-					{herValue => {
-						// console.log( '看內層 herValue:', herValue )
-						const merged = merge(hisValue, herValue)
-						return <Label {...merged} />
-					}}
-				</HerStore.Consumer>
-			)
+			return <Label {...hisValue} />
 		}}
 	</HisStore.Consumer>
 )
@@ -146,14 +68,7 @@ const withState = Comp => {
     return (
     	<HisStore.Consumer>
     		{hisValue => {
-    			return (
-    				<HerStore.Consumer>
-    					{herValue => {
-    						const merged = merge(hisValue, herValue)
-    						return <Label {...merged} />
-    					}}
-    				</HerStore.Consumer>
-    			)
+    			return <Label {...hisValue} />
     		}}
     	</HisStore.Consumer>
     )
@@ -161,3 +76,45 @@ const withState = Comp => {
 }
 
 export const HOCLabel = withState(Label)
+
+
+/* render props 1 - 用 react-adopt 先整合兩份 Consumer 的內容
+----------------------------------------------------------------- */
+
+// 用 adopt 先包過兩份 Consumer renderProps 語法看起來簡潔許多
+// 此手法缺點是只能套用於 Label 身上，因為寫死了
+const Composed = adopt({
+	hisValue: <HisStore.Consumer />,
+})
+
+export const AdoptedLabel = props => (
+	<Composed>
+		{({ hisValue }) => {
+			return <Label {...hisValue} />
+		}}
+	</Composed>
+)
+
+/* render props 2 - 改良為可彈性包入各種子元件
+-------------------------------------------------- */
+
+// 亮點是這個 Wrapped 元件內部可包任何 presentation 子元件，就不用每次重複寫
+const Wrapped = props => {
+	const Composed = adopt({
+		hisValue: <HisStore.Consumer />,
+	})
+
+	return (
+		<Composed>
+				{({ hisValue }) => {
+					return props.children(hisValue)
+				}}
+			</Composed>
+	)
+}
+
+// 因為是 render props 因此將來可置換 Label 為任何元件，它們皆可收到 HisStore 與 HerStore 的值
+export const WrappedLabel = props => (
+	<Wrapped>{pay => <Label {...pay} />}</Wrapped>
+)
+

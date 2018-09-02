@@ -1,9 +1,6 @@
 import React from 'react'
 import HisStore from './HisStore'
-import HerStore from './HerStore'
-import merge from 'deepmerge'
 import { SimpleLabel, WrappedLabel, AdoptedLabel, HOCLabel } from './Label'
-
 
 class App extends React.PureComponent {
 
@@ -28,8 +25,8 @@ class App extends React.PureComponent {
 	}
 
 	togglePlay = () => {
-		console.log( 'App.togglePlay run > state: ', this.props  )
-		this.props.updateState({ 'togglePlay': 'run run'})
+		// console.log( 'App.togglePlay run > state: ', this.props  )
+		return this.props.updateState({ 'togglePlay': 'togglePlay ran'})
 	}
 
 	// 理論上可按功能區塊切成多個 store，然後用 nested Provider 包起來再分別餵入即可
@@ -49,19 +46,7 @@ class App extends React.PureComponent {
 const WrappedApp = props => (
 	<HisStore.Consumer>
 		{hisValue => {
-			return (
-				<HerStore.Consumer>
-					{herValue => {
-
-						const merged = merge(hisValue, herValue)
-						// console.log( '看合併後是否少東西:', merged )
-
-						return (
-							<App {...merged} />
-						)
-					}}
-				</HerStore.Consumer>
-			)
+			return <App {...hisValue} />
 		}}
 	</HisStore.Consumer>
 )

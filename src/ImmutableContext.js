@@ -43,8 +43,10 @@ export const createImmutableContext = store => {
 
 					const userFn = tmp.actions[key]
 					// 重新綁定成呼叫內部真正的 updateState 去 setState 以觸發重繪
+					// tmp.actions[key] = this.exec(userFn)
+
 					tmp.actions[key] = (...args) => {
-						// console.log( 'args =', args )
+						// console.log( '包過的 fn 要跑，此時 state: ', this.state )
 						return userFn.call(null, {
 							state: this.state,
 							updateState: this.updateState,
@@ -54,7 +56,6 @@ export const createImmutableContext = store => {
 
 				// 2. 直接將 updateState 注入 store 內方便存取
 				tmp.updateState = this.updateState
-				console.log( '\n注射:', store )
 			})
 
 			this.state = newStore
@@ -63,15 +64,14 @@ export const createImmutableContext = store => {
 		// internal updateState 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
 		updateState = next => {
-			console.log('1. updateState >next: ', next)
-			console.log('2. >old state: ', this.state)
+			// console.log('updateState >next: ', next)
+			// console.log('2. >old state: ', this.state)
 
 			const newState = produce(this.state, tmp => {
-				return { ...tmp, ...next }
-				// return merge(tmp, next) // deep merge
+				return merge(tmp, next) // deep merge
 			})
 
-			console.log('3. >newState: ', newState)
+			console.log( '\nupdate:', next, '\nnewState:', newState  )
 			return this.setStateAsync(newState)
 		}
 
