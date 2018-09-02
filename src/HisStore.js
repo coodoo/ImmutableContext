@@ -20,7 +20,7 @@ const actions = {
 
 	// 第一參數固定傳入 this.state 供讀取目前新值，但為 immutable 因此無法修改，安啦
 	hisMethod: ({state, updateState, args}) => {
-		// console.log( 'hisMethod 開始跑',  )
+		console.log( 'hisMethod 開始跑',  )
 		let [ obj, amount, orders ] = args
 
 		// 示範可讀取最新 state 內容

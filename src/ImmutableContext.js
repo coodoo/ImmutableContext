@@ -2,6 +2,7 @@
 
 import React, { PureComponent } from 'react'
 import produce from 'immer'
+import merge from 'deepmerge'
 
 /**
  * createImmutableContext(store) 是為了將 store 切分為小塊
@@ -53,6 +54,7 @@ export const createImmutableContext = store => {
 
 				// 2. 直接將 updateState 注入 store 內方便存取
 				tmp.updateState = this.updateState
+				console.log( '\n注射:', store )
 			})
 
 			this.state = newStore
@@ -61,13 +63,15 @@ export const createImmutableContext = store => {
 		// internal updateState 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
 		updateState = next => {
-			// console.log('1. updateState >next: ', next, ' >old state: ', this.state)
+			console.log('1. updateState >next: ', next)
+			console.log('2. >old state: ', this.state)
 
 			const newState = produce(this.state, tmp => {
 				return { ...tmp, ...next }
+				// return merge(tmp, next) // deep merge
 			})
 
-			console.log('2. updateState >newState: ', newState)
+			console.log('3. >newState: ', newState)
 			return this.setStateAsync(newState)
 		}
 

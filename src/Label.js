@@ -2,49 +2,49 @@ import React from 'react'
 import HisStore from './HisStore'
 import HerStore from './HerStore'
 import { adopt } from 'react-adopt'
+import merge from 'deepmerge'
 
 // 這是單純的 presentation component
-const Label = props => {
-	// console.log('label 內拿到 props: ', props)
-	const {
-		value,
-		actions: { hisMethod, myMethod, },
-	} = props
+class Label extends React.PureComponent {
 
-	const onClick = async () => {
-		// hisMethod({aaa: {bar: 'barrr'}, bbb:{coo: '16888'}})
-		// hisMethod({value: 42})
+	onClick = async () => {
 
-		/*const bb = hisMethod({
-		// const bb = myMethod({
-			value: Math.random()
-				.toString()
-				.substr(0, 5),
-		})
-		.then(
-			res => console.log( '成功:', res ),
-			err => console.log( '失敗', err ),
-		)
-		console.log( '拿回什麼', bb )
-		*/
+		const {
+			actions: { hisMethod, myMethod, },
+			callbacks,
+		} = this.props
+
+		const togglePlay = callbacks.App ? callbacks.App.togglePlay : null
 
 		// 可先等 async 操作完成再進行下一步
-		await myMethod({value:'method'})
+		// await myMethod({value:'herOP'})
 
 		// sync 操作
-		hisMethod({value:'method'}, 123, [3,6,9])
+		hisMethod({value:'hisOP'}, 123, [3,6,9])
+
+		// 示範操作 ui 元件偷藏的指令
+		togglePlay()
 
 		console.log( 'onClick 跑完',  )
 
 	}
 
-	return <button onClick={onClick}>Label2: {value}</button>
+	render() {
+
+		// console.log('label 內拿到 props: ', this.props)
+		const {
+			value,
+		} = this.props
+
+		return <button onClick={this.onClick}>Label2: {value}</button>
+	}
 }
 
-/* 用 react-adopt 先整合兩份 Consumer render props
--------------------------------------------------- */
+/* render props 1 - 用 react-adopt 先整合兩份 Consumer 的內容
+----------------------------------------------------------------- */
 
-// 用 adopt 先包過兩份 Consumer renderProps 語法看起來簡潔許多，不然就會像下面 Wrapped 的例子很醜
+// 用 adopt 先包過兩份 Consumer renderProps 語法看起來簡潔許多
+// 此手法缺點是只能套用於 Label 身上，因為寫死了
 const Composed = adopt({
 	herValue: <HerStore.Consumer />,
 	hisValue: <HisStore.Consumer />,
@@ -54,17 +54,13 @@ export const AdoptedLabel = props => (
 	<Composed>
 		{({ herValue, hisValue }) => {
 			// console.log('真的有拿到兩份資料:', hisValue, herValue)
-			const payload = {
-				...hisValue,
-				...herValue,
-				actions: { ...hisValue.actions, ...herValue.actions },
-			}
-			return <Label {...payload} />
+			const merged = merge(hisValue, herValue)
+			return <Label {...merged} />
 		}}
 	</Composed>
 )
 
-/* 用 Wrapped 包過一層方便取得多個 Consumer 資料
+/* render props 2 - 改良為可彈性包入各種子元件
 -------------------------------------------------- */
 
 // 亮點是這個 Wrapped 元件內部可包任何 presentation 子元件，就不用每次重複寫
@@ -78,12 +74,8 @@ const Wrapped = props => {
 		<Composed>
 				{({ herValue, hisValue }) => {
 					// console.log('真的有拿到兩份資料:', hisValue, herValue)
-					const payload = {
-						...hisValue,
-						...herValue,
-						actions: { ...hisValue.actions, ...herValue.actions },
-					}
-					return props.children(payload)
+					const merged = merge(hisValue, herValue)
+					return props.children(merged)
 				}}
 			</Composed>
 	)
@@ -136,16 +128,8 @@ export const SimpleLabel = props => (
 				<HerStore.Consumer>
 					{herValue => {
 						// console.log( '看內層 herValue:', herValue )
-
-						// 多層堆疊時這裏要注意 hisValue 與 herValue 的 actions{} 會覆寫對方，因此要特別組合一次
-						// 這是為何文件上會建議用一個 hoc 來一次整合兩份 Provider 的資料
-						return (
-							<Label
-								{...hisValue}
-								{...herValue}
-								actions={{ ...hisValue.actions, ...herValue.actions }}
-							/>
-						)
+						const merged = merge(hisValue, herValue)
+						return <Label {...merged} />
 					}}
 				</HerStore.Consumer>
 			)
@@ -160,11 +144,18 @@ export const SimpleLabel = props => (
 const withState = Comp => {
   return props => {
     return (
-      <HisStore.Consumer>
-      	{ s => {
-      		return <Comp {...s} />
-      	}}
-      </HisStore.Consumer>
+    	<HisStore.Consumer>
+    		{hisValue => {
+    			return (
+    				<HerStore.Consumer>
+    					{herValue => {
+    						const merged = merge(hisValue, herValue)
+    						return <Label {...merged} />
+    					}}
+    				</HerStore.Consumer>
+    			)
+    		}}
+    	</HisStore.Consumer>
     )
   }
 }

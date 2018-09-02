@@ -13,7 +13,8 @@ const actions = {
 
 const store = {
 	herValue: 888,
-	actions: actions
+	actions: actions,
+	callbacks: {},
 }
 
 const HerContext = createImmutableContext(store)
