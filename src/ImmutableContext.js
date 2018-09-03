@@ -63,14 +63,13 @@ export const createImmutableContext = store => {
 
 		// internal updateState 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
-		updateState = (next) => {
+		updateState = next => {
 			// 因為 setState() 是 batched run，因此要確保等到它執行完才跑下一支指令，這樣就能排隊執行多個指令
 			// 多謝佳豪提供 setStateAsync(next) 手法
 			return new Promise( resolve => this.setState( prev => {
-				const newState = produce(prev, tmp => {
-					return merge(tmp, next) // deep merge
-				})
-				console.log( '\nupdate:', next, '\nold:', prev, '\nnewState:', newState  )
+				// deep merge
+				const newState = produce(prev, tmp => merge(tmp, next, { arrayMerge: overwriteMerge }))
+				// console.log( '\nold:', prev, '\nnext:', next, '\nnewState:', newState  )
 				return newState
 			}, resolve) )
 		}
@@ -86,3 +85,6 @@ export const createImmutableContext = store => {
 		Consumer: cx.Consumer
 	}
 }
+
+// https://github.com/KyleAMathews/deepmerge#arraymerge
+const overwriteMerge = (destinationArray, sourceArray, options) => sourceArray
