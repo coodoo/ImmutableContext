@@ -1,4 +1,10 @@
 
+- 目地
+
+	- 一切設計以實戰上實用為主，不預想將來需要多大彈性(反正通常不會發生)
+	- 目地是希望手法能盡量簡便，以快速將東西做出來為主
+	- 在可能的範圍內，盡量採用 functional 手法並維持架構整潔，但必要時也會用 quick and dirty trick
+
 - 利用 react v16.3 的 new context API 建立 state management 機制
 
 - 希望能取代 redux 煩雜的 boilerplate code

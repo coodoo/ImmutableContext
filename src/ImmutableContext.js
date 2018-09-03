@@ -63,26 +63,20 @@ export const createImmutableContext = store => {
 
 		// internal updateState 目地是為了確保 immutable 操作
 		// 由它代為操作 immer.produce() api
-		updateState = next => {
-			// console.log('updateState >next: ', next)
-			// console.log('2. >old state: ', this.state)
-
-			const newState = produce(this.state, tmp => {
-				return merge(tmp, next) // deep merge
-			})
-
-			console.log( '\nupdate:', next, '\nnewState:', newState  )
-			return this.setStateAsync(newState)
+		updateState = (next) => {
+			// 因為 setState() 是 batched run，因此要確保等到它執行完才跑下一支指令，這樣就能排隊執行多個指令
+			// 多謝佳豪提供 setStateAsync(next) 手法
+			return new Promise( resolve => this.setState( prev => {
+				const newState = produce(prev, tmp => {
+					return merge(tmp, next) // deep merge
+				})
+				console.log( '\nupdate:', next, '\nold:', prev, '\nnewState:', newState  )
+				return newState
+			}, resolve) )
 		}
 
-		// 因為 setState() 是 batched run，因此要確保等到它執行完才跑下一支指令，這樣就能排隊執行多個指令
-		// 多謝佳豪提供此手法
-		setStateAsync(next) {
-		   return new Promise( resolve => this.setState(next, resolve) )
-		 }
-
 		render() {
-			// console.log('Render > Provider 內部 state: ', this.state, ' >與 props: ', this.props)
+			// console.log('Provider 內部 state: ', this.state )
 			return <cx.Provider value={this.state}>{this.props.children}</cx.Provider>
 		}
 	}
